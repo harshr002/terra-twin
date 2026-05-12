@@ -1,40 +1,20 @@
-# TerraTwin – System Architecture
+# TerraTwin Architecture
 
 ## Overview
-TerraTwin is a modular, cloud-agnostic digital twin platform that connects real-world data (sensors, spatial data, imagery) with AI-driven intelligence.
 
-## Layers
+TerraTwin is built as a real-time AI-powered digital twin system that simulates IoT data, ingests it through a backend API, stores it persistently, performs ML-based anomaly detection, and streams live updates to a dashboard.
 
-### 1. Data Ingestion Layer
-- Kafka for streaming
-- Python-based data simulators
-- Image/video ingestion via OpenCV
+## System Flow
 
-### 2. Processing Layer
-- Apache Flink for real-time processing
-- Spark for batch analytics
-- Python for transformations
-
-### 3. Storage Layer
-- PostgreSQL + PostGIS (spatial data)
-- Delta Lake (structured data)
-- FAISS / ChromaDB (vector storage)
-
-### 4. ML & AI Layer
-- YOLO for vision detection
-- PyTorch for training
-- RAG-based LLM system for reasoning
-
-### 5. API Layer
-- FastAPI backend
-- REST APIs for all services
-- Authentication-ready structure
-
-### 6. Visualization Layer
-- Dashboards (Superset / custom UI)
-- Real-time monitoring views
-- AI agent interface
-
-## Design Principle
-Everything is modular and can scale from local machine to cloud without architecture changes.
-
+```text
+IoT Simulator
+   ↓
+FastAPI /ingest
+   ↓
+SQLite Database
+   ↓
+Analytics + ML Anomaly Detection
+   ↓
+WebSocket Live Stream
+   ↓
+React Dashboard
