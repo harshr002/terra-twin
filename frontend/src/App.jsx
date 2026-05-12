@@ -1,23 +1,28 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+} from "recharts";
 import "./App.css";
 
-const API_BASE = "https://terra-twin-production.up.railway.app";
+const API_BASE = "http://127.0.0.1:8000";
 
 function App() {
   const [analytics, setAnalytics] = useState(null);
   const [alerts, setAlerts] = useState(null);
-  const [liveEvents, setLiveEvents] = useState([]);
+  const [events, setEvents] = useState([]);
 
   const fetchData = async () => {
-    try {
-      const analyticsRes = await axios.get(`${API_BASE}/analytics`);
-      const alertsRes = await axios.get(`${API_BASE}/alerts`);
-      setAnalytics(analyticsRes.data);
-      setAlerts(alertsRes.data);
-    } catch (error) {
-      console.error("API fetch failed:", error);
-    }
+    const analyticsRes = await axios.get(`${API_BASE}/analytics`);
+    const alertsRes = await axios.get(`${API_BASE}/alerts`);
+    setAnalytics(analyticsRes.data);
+    setAlerts(alertsRes.data);
   };
 
   useEffect(() => {
@@ -27,67 +32,96 @@ function App() {
 
     ws.onmessage = (event) => {
       const payload = JSON.parse(event.data);
-      setLiveEvents((prev) => [payload, ...prev].slice(0, 8));
+      const point = {
+        time: new Date().toLocaleTimeString(),
+        temperature: payload.data.temperature,
+        humidity: payload.data.humidity,
+        device_id: payload.data.device_id,
+        alert: payload.alert,
+      };
+
+      setEvents((prev) => [point, ...prev].slice(0, 20));
       fetchData();
     };
 
     return () => ws.close();
   }, []);
 
+  const chartData = [...events].reverse();
+
   return (
     <div className="dashboard">
-      <header>
+      <header className="hero">
         <div>
-          <p className="eyebrow">TerraTwin</p>
-          <h1>Autonomous Digital Twin Dashboard</h1>
+          <p className="eyebrow">TerraTwin Command Center</p>
+          <h1>AI-Powered Digital Twin Monitoring</h1>
           <p className="subtitle">
-            Real-time IoT ingestion, analytics, anomaly detection, and live streaming.
+            Live IoT ingestion, SQLite persistence, ML anomaly detection, and
+            WebSocket streaming in one production-style system.
           </p>
         </div>
-        <span className="status">LIVE</span>
+        <div className="live-pill">LIVE SYSTEM</div>
       </header>
 
       <section className="cards">
         <div className="card">
-          <p>Total Records</p>
+          <span>Total Records</span>
           <h2>{analytics?.total_records ?? 0}</h2>
         </div>
 
         <div className="card">
-          <p>Average Temperature</p>
-          <h2>
-            {analytics?.avg_temperature
-              ? analytics.avg_temperature.toFixed(2)
-              : "0.00"}{" "}
-            °C
-          </h2>
+          <span>Avg Temperature</span>
+          <h2>{analytics?.avg_temperature?.toFixed(2) ?? "0.00"}°C</h2>
         </div>
 
         <div className="card">
-          <p>Average Humidity</p>
-          <h2>
-            {analytics?.avg_humidity
-              ? analytics.avg_humidity.toFixed(2)
-              : "0.00"}{" "}
-            %
-          </h2>
+          <span>Avg Humidity</span>
+          <h2>{analytics?.avg_humidity?.toFixed(2) ?? "0.00"}%</h2>
         </div>
 
-        <div className="card alert-card">
-          <p>ML Alerts</p>
+        <div className="card danger">
+          <span>ML Anomalies</span>
           <h2>{alerts?.anomalies_detected ?? 0}</h2>
         </div>
       </section>
 
       <section className="grid">
+        <div className="panel large">
+          <h3>Live Temperature Trend</h3>
+          <ResponsiveContainer width="100%" height={280}>
+            <LineChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="time" />
+              <YAxis />
+              <Tooltip />
+              <Line type="monotone" dataKey="temperature" strokeWidth={3} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="panel large">
+          <h3>Live Humidity Trend</h3>
+          <ResponsiveContainer width="100%" height={280}>
+            <LineChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="time" />
+              <YAxis />
+              <Tooltip />
+              <Line type="monotone" dataKey="humidity" strokeWidth={3} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </section>
+
+      <section className="grid">
         <div className="panel">
-          <h3>Latest Sensor Reading</h3>
+          <h3>Latest Reading</h3>
           {analytics?.latest ? (
             <div className="reading">
-              <p><strong>Device:</strong> {analytics.latest.device_id}</p>
-              <p><strong>Temperature:</strong> {analytics.latest.temperature} °C</p>
-              <p><strong>Humidity:</strong> {analytics.latest.humidity} %</p>
-              <p><strong>Timestamp:</strong> {analytics.latest.timestamp}</p>
+              <p><b>Device:</b> {analytics.latest.device_id}</p>
+              <p><b>Temperature:</b> {analytics.latest.temperature}°C</p>
+              <p><b>Humidity:</b> {analytics.latest.humidity}%</p>
+              <p><b>Timestamp:</b> {analytics.latest.timestamp}</p>
             </div>
           ) : (
             <p>No readings yet.</p>
@@ -95,16 +129,16 @@ function App() {
         </div>
 
         <div className="panel">
-          <h3>Live WebSocket Stream</h3>
-          <div className="stream">
-            {liveEvents.length === 0 ? (
-              <p>Waiting for live sensor events...</p>
+          <h3>Live Event Stream</h3>
+          <div className="event-list">
+            {events.length === 0 ? (
+              <p>Waiting for WebSocket events...</p>
             ) : (
-              liveEvents.map((event, index) => (
-                <div key={index} className="stream-item">
-                  <span>{event.data?.device_id}</span>
-                  <span>{event.data?.temperature} °C</span>
-                  <span>{event.data?.humidity} %</span>
+              events.slice(0, 8).map((event, index) => (
+                <div key={index} className="event-item">
+                  <span>{event.device_id}</span>
+                  <span>{event.temperature}°C</span>
+                  <span>{event.humidity}%</span>
                   {event.alert && <b>ALERT</b>}
                 </div>
               ))
@@ -114,14 +148,14 @@ function App() {
       </section>
 
       <section className="panel">
-        <h3>Detected Anomalies</h3>
-        <div className="alerts">
+        <h3>ML Anomaly Alerts</h3>
+        <div className="alert-list">
           {alerts?.alerts?.length ? (
-            alerts.alerts.slice(0, 8).map((alert, index) => (
+            alerts.alerts.slice(0, 10).map((alert, index) => (
               <div key={index} className="alert-item">
-                <strong>{alert.device_id}</strong>
-                <span>{alert.temperature} °C</span>
-                <span>{alert.humidity} %</span>
+                <b>{alert.device_id}</b>
+                <span>{alert.temperature}°C</span>
+                <span>{alert.humidity}%</span>
                 <small>{alert.timestamp}</small>
               </div>
             ))
