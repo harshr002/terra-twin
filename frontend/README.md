@@ -1,42 +1,83 @@
-# TerraTwin
+# TerraTwin Frontend
 
-AI-powered digital twin platform for real-time IoT monitoring, anomaly detection, and live infrastructure intelligence.
+React-based real-time dashboard for TerraTwin.
 
-## Live Demo
+This frontend connects to the TerraTwin backend and visualizes:
 
-- Backend API: https://terra-twin-production.up.railway.app/docs
-- Dashboard: Coming soon
+- Live IoT sensor readings
+- Temperature trends
+- Humidity trends
+- Machine learning anomaly alerts
+- Real-time WebSocket event streams
 
-## What It Does
+---
 
-TerraTwin simulates IoT sensor streams, ingests live data through FastAPI, stores readings in SQLite, detects anomalies using machine learning, and streams live updates to a React dashboard using WebSockets.
+# Tech Stack
 
-## Tech Stack
-
-- FastAPI
-- SQLite + SQLAlchemy
-- IsolationForest ML anomaly detection
-- WebSockets
-- React + Vite
+- React
+- Vite
+- Axios
 - Recharts
-- Docker
-- Railway
+- WebSockets
 
-## Architecture
+---
 
-IoT Simulator → FastAPI Backend → SQLite Database → ML Anomaly Detection → WebSocket Stream → React Dashboard
+# Features
 
-## Core Features
+## Live Metrics
 
-- Real-time IoT data ingestion
-- Persistent sensor data storage
-- Live analytics API
-- ML-based anomaly detection
-- Real-time WebSocket updates
-- React dashboard with live charts
-- Dockerized backend
-- Railway deployment
+Displays:
 
-## Author
+- Total records
+- Average temperature
+- Average humidity
+- Total anomaly alerts
+
+## Live Charts
+
+Visualizes:
+
+- Temperature trends
+- Humidity trends
+
+## Event Streaming
+
+Receives real-time updates from backend using WebSockets.
+
+---
+
+# Local Setup
+
+## Install dependencies
+
+```bash
+npm install
+```
+
+## Run frontend
+
+```bash
+npm run dev
+```
+
+Frontend runs on:
+
+```text
+http://localhost:5173
+```
+
+---
+
+# Backend API
+
+Connected to:
+
+```text
+https://terra-twin-production.up.railway.app
+```
+
+---
+
+# Author
 
 Harsh Roy
